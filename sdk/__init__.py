@@ -1,0 +1,1 @@
+from .gmessage import GMessageLib, VERSION
