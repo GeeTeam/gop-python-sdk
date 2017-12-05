@@ -3,7 +3,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.gen
 from torndsession.sessionhandler import SessionBaseHandler
-from sdk import GMessageLib
+from gonepass import GMessageLib
 
 import json
 

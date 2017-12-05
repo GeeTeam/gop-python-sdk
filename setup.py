@@ -12,13 +12,13 @@ if __name__ == "__main__":
     with open('requirements.txt') as f:
         required = f.read().splitlines()
     setup(
-        name="gmessage",
+        name="gonepass",
         version=VERSION,
-        packages=['sdk'],
-        url='http://github.com/GeeTeam/gm-python-sdk',
+        packages=['gonepass'],
+        url='http://github.com/GeeTeam/gop-python-sdk',
         license='',
         author='Geetest',
         author_email='admin@geetest.com',
-        description='Gmessage Python SDK',
+        description='Gop Python SDK',
         install_requires=required,
     	)
