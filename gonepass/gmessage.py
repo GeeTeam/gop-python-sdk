@@ -4,19 +4,29 @@ import random
 import json
 import requests
 import time
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
 from hashlib import md5
+import base64
 
 
 if sys.version_info >= (3,):
     xrange = range    
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
+
+RSA_KEY = b"""-----BEGIN RSA PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDB45NNFhRGWzMFPn9I7k7IexS5
+XviJR3E9Je7L/350x5d9AtwdlFH3ndXRwQwprLaptNb7fQoCebZxnhdyVl8Jr2J3
+FZGSIa75GJnK4IwNaG10iyCjYDviMYymvCtZcGWSqSGdC/Bcn2UCOiHSMwgHJSrg
+Bm1Zzu+l8nSOqAurgQIDAQAB
+-----END RSA PUBLIC KEY-----\n"""
 
 
 class GMessageLib(object):
 
-
-    API_URL = "http://onepass.geetest.com"
+    # API_URL = "http://onepass.geetest.com"
+    API_URL = "http://127.0.0.1:8885"
     GATEWAY_HANDLER = "/check_gateway.php"
     MESSAGE_HANDLER = "/check_message.php"
     JSON_FORMAT = False
@@ -25,7 +35,6 @@ class GMessageLib(object):
         self.private_key = private_key
         self.custom_id = custom_id
         self.sdk_version = VERSION
-
 
     def _check_method(self,method,**kwargs):
         """
@@ -37,6 +46,7 @@ class GMessageLib(object):
             phone = kwargs["phone"]
             user_id = kwargs.get("user_id","")
             callback = kwargs.get("callback","")
+            testbutton = kwargs.get("testbutton", True)
             if not self._check_para(process_id, accesscode, phone):
                 return 0
             send_url = "{api_url}{handler}".format(
@@ -49,8 +59,12 @@ class GMessageLib(object):
                 "accesscode":accesscode,
                 "callback":callback,
                 "custom":self.custom_id,
-                "phone":phone
+                "phone":phone,
             }
+            if not testbutton:
+                sign_data = self.custom_id + "&&" + self._md5_encode(self.private_key) + "&&" + str(time.time()*1000)
+                sign = self.rsa_encrypt(sign_data)
+                query.update({"sign": sign})
         elif method == "message":
             process_id = kwargs["process_id"]
             message_id = kwargs["message_id"]
@@ -86,12 +100,11 @@ class GMessageLib(object):
         else:
             return 0
 
-
-    def check_gateway(self, process_id, accesscode, phone, user_id=None,callback=None):
+    def check_gateway(self, process_id, accesscode, phone, user_id=None, callback=None, testbutton=True):
         """
         method for gateway check
         """
-        result = self._check_method("gateway",process_id=process_id,accesscode=accesscode,phone=phone,user_id=user_id,callback=callback)
+        result = self._check_method("gateway", process_id=process_id, accesscode=accesscode, phone=phone, user_id=user_id, callback=callback, testbutton=testbutton)
         return result
 
     def check_message(self, process_id, message_id, message_number,phone, user_id=None,callback=None):
@@ -120,4 +133,12 @@ class GMessageLib(object):
             values = values.encode()
         m = md5(values)
         return m.hexdigest()
+
+    def rsa_encrypt(self, text):
+        rsa_key = RSA.importKey(RSA_KEY)
+        cipher = PKCS1_v1_5.new(rsa_key)
+        result = base64.encodebytes(cipher.encrypt(text.encode())).decode()
+        return result
+
+
 

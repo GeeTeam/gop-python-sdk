@@ -22,7 +22,7 @@ class CheckGatewayHandler(SessionBaseHandler):
         accesscode = self.get_argument("accesscode", "")
         phone = self.get_argument("phone", "")
         user_id = "test"
-        result = gm.check_gateway(process_id, accesscode, phone, user_id=user_id)
+        result = gm.check_gateway(process_id, accesscode, phone, user_id=user_id, testbutton=False)
         result = 0 if result else 1
         output = {"result":result,"content":"demo"}
         self.write(output)
