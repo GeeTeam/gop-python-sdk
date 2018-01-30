@@ -25,8 +25,7 @@ Bm1Zzu+l8nSOqAurgQIDAQAB
 
 class GMessageLib(object):
 
-    # API_URL = "http://onepass.geetest.com"
-    API_URL = "http://127.0.0.1:8885"
+    API_URL = "http://onepass.geetest.com"
     GATEWAY_HANDLER = "/check_gateway.php"
     MESSAGE_HANDLER = "/check_message.php"
     JSON_FORMAT = False
