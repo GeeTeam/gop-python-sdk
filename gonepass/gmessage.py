@@ -35,7 +35,7 @@ class GMessageLib(object):
         self.custom_id = custom_id
         self.sdk_version = VERSION
 
-    def _check_method(self,method,**kwargs):
+    def _check_method(self, method, **kwargs):
         """
         method for gateway check
         """
@@ -43,34 +43,34 @@ class GMessageLib(object):
             process_id = kwargs["process_id"]
             accesscode = kwargs["accesscode"]
             phone = kwargs["phone"]
-            user_id = kwargs.get("user_id","")
-            callback = kwargs.get("callback","")
-            testbutton = kwargs.get("testbutton", True)
+            user_id = kwargs.get("user_id", "")
+            callback = kwargs.get("callback", "")
+
             if not self._check_para(process_id, accesscode, phone):
                 return 0
+
             send_url = "{api_url}{handler}".format(
                 api_url=self.API_URL, handler=self.GATEWAY_HANDLER)
+            sign_data = self.custom_id + "&&" + self._md5_encode(self.private_key) + "&&" + str(time.time()*1000)
+            sign = self.rsa_encrypt(sign_data)
             query = {
                 "process_id": process_id,
-                "sdk": ''.join( ["python_",self.sdk_version]),
+                "sdk": ''.join( ["python_", self.sdk_version]),
                 "user_id": user_id,
-                "timestamp":time.time(),
-                "accesscode":accesscode,
-                "callback":callback,
-                "custom":self.custom_id,
-                "phone":phone,
+                "timestamp": time.time(),
+                "accesscode": accesscode,
+                "callback": callback,
+                "custom": self.custom_id,
+                "phone": phone,
+                "sign": sign,
             }
-            if not testbutton:
-                sign_data = self.custom_id + "&&" + self._md5_encode(self.private_key) + "&&" + str(time.time()*1000)
-                sign = self.rsa_encrypt(sign_data)
-                query.update({"sign": sign})
         elif method == "message":
             process_id = kwargs["process_id"]
             message_id = kwargs["message_id"]
             message_number = kwargs["message_number"]
             phone = kwargs["phone"]
-            user_id = kwargs.get("user_id","")
-            callback = kwargs.get("callback","")
+            user_id = kwargs.get("user_id", "")
+            callback = kwargs.get("callback", "")
             if not self._check_para(process_id, message_id, phone):
                 return 0
             if not phone:
@@ -88,7 +88,7 @@ class GMessageLib(object):
                 "custom":self.custom_id,
             }
         else:
-            send_url,query,process_id ="","","" #avoid warning
+            send_url, query, process_id = "", "", "" #avoid warning
         backinfo = self._post_values(send_url, query)
         backinfo = json.loads(backinfo)
         if str(backinfo["result"]) == "0":
@@ -99,18 +99,20 @@ class GMessageLib(object):
         else:
             return 0
 
-    def check_gateway(self, process_id, accesscode, phone, user_id=None, callback=None, testbutton=True):
+    def check_gateway(self, process_id, accesscode, phone, user_id=None, callback=None):
         """
         method for gateway check
         """
-        result = self._check_method("gateway", process_id=process_id, accesscode=accesscode, phone=phone, user_id=user_id, callback=callback, testbutton=testbutton)
+        result = self._check_method("gateway", process_id=process_id, accesscode=accesscode,
+                                    phone=phone, user_id=user_id, callback=callback)
         return result
 
-    def check_message(self, process_id, message_id, message_number,phone, user_id=None,callback=None):
+    def check_message(self, process_id, message_id, message_number, phone, user_id=None, callback=None):
         """
         method for message check
         """
-        result = self._check_method("message",process_id=process_id,message_id=message_id,message_number=message_number,phone=phone,user_id=user_id,callback=callback)
+        result = self._check_method("message",process_id=process_id, message_id=message_id,
+                                    message_number=message_number, phone=phone, user_id=user_id, callback=callback)
         return result
 
     def _post_values(self, apiserver, data):
